@@ -913,9 +913,9 @@ getjob <- function(jobcode) {
       } else if (round(jobcode %% 1, 2) == 0.19) {
         return(list("party", "General Office"))
       } else if (round(jobcode %% 1, 2) == 0.20) {
-        return(list("sc", "MIIT"))
+        return(list("sc", "DSTC"))
       } else if (round(jobcode %% 1, 2) == 0.21) {
-        return(list("sc", "MIIT"))
+        return(list("sc", "DSTC"))
       } else if (round(jobcode %% 1, 2) == 0.22) {
         return(list("sc", "MOE"))
       } else if (round(jobcode %% 1, 2) == 0.23) {
@@ -1349,6 +1349,12 @@ fcc18 <- master |>
   filter(cc18 > 2000 & cc18 < 3000)
 acc18 <- master |> 
   filter(cc18 > 3000)
+psc20 <- master |> 
+  filter(cc20 < 2000)
+psc19 <- master |> 
+  filter(cc19 < 2000)
+psc18 <- master |> 
+  filter(cc18 < 2000)
 
 # Correction
 fcc20[c(10, 58, 62), c("job30s", "job30e", "job31", "job31s", "job31e", "job32")] <- NA
@@ -1360,6 +1366,8 @@ fcc19[7, c("job2", "job2s", "job2e")] <- list(1123.00, 2014.0, 2017)
 fcc19[20, c("job4", "job4s", "job4e")] <- list(2043.00, 2002.0, 2016.0)
 fcc20[34, c("job4", "job4s", "job4e")] <- list(2043.00, 2002.0, 2016.0)
 acc18[83, c("job3", "job3s", "job3e")] <- list(2225.100, 2007, 2013)
+psc20[17, c("job2", "job2s", "job2e")] <- list(1123.00, 2014.0, 2017)
+
 
 #Career Track and Width
 career_var <- c("cname", "ename", "byear", "pyear", "bpro", "edu", 
@@ -1415,6 +1423,24 @@ acc18_career <- career_return[[1]][, career_var] |>
 acc18_career$narrow <- as.numeric(acc18_career$width < 2)
 acc18_career$narrow_alt <- as.numeric(acc18_career$width <= 1.3)
 acc18_path <- career_return[[2]]
+
+career_return <- career(psc18, 2012)
+psc18_career <- career_return[[1]][, career_var] |> 
+  mutate(width = nparty + nsc + npro + nCPPCC + nNPC + npla + 
+           0.3 * (as.numeric(nSOE > 0) + as.numeric(nuniv > 0) + as.numeric(nmo > 0)))
+psc18_path <- career_return[[2]]
+
+career_return <- career(psc19, 2017)
+psc19_career <- career_return[[1]][, career_var] |> 
+  mutate(width = nparty + nsc + npro + nCPPCC + nNPC + npla + 
+           0.3 * (as.numeric(nSOE > 0) + as.numeric(nuniv > 0) + as.numeric(nmo > 0)))
+psc19_path <- career_return[[2]]
+
+career_return <- career(psc20, 2022)
+psc20_career <- career_return[[1]][, career_var] |> 
+  mutate(width = nparty + nsc + npro + nCPPCC + nNPC + npla + 
+           0.3 * (as.numeric(nSOE > 0) + as.numeric(nuniv > 0) + as.numeric(nmo > 0)))
+psc20_path <- career_return[[2]]
 
 network[network > 1 & network <= 3] = 2
 network[network > 3 & network <= 10] = 3
@@ -1863,6 +1889,8 @@ for (i in 1:length(narrow_list)){
     fcc20_narrow$onePLA[i] = 1
   } else if (grepl("party", joblist)) {
     fcc20_narrow$oneparty[i] = 1
+  } else if (grepl("DSTC", joblist)) {
+    fcc20_narrow$tech[i] = 1
   } else if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
              grepl("BOC", joblist) | grepl("CCB", joblist) | grepl("BOComm", joblist) |
              grepl("EXIM", joblist) | grepl("ADBC", joblist) | grepl("CDB", joblist) |
@@ -1871,11 +1899,9 @@ for (i in 1:length(narrow_list)){
              grepl("PFB", joblist) | grepl("HXB", joblist) | grepl("MSB", joblist) |
              grepl("ZJB", joblist) | grepl("HFB", joblist) | grepl("BHB", joblist) |
              grepl("Other Bank", joblist) | grepl("CIC", joblist) | grepl("WBIMF", joblist) |
-             grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("SASAC", joblist) |
+             grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("sc SASAC", joblist) |
              grepl("NAFR", joblist) | grepl("CSRC", joblist)) {
     fcc20_narrow$finance[i] = 1
-  } else if (grepl("SOE DSTC", joblist)) {
-    fcc20_narrow$tech[i] = 1
   } else if (grepl("univ", joblist) & (grepl("Engineering Academy", joblist) | grepl("NSFC", joblist))){
     fcc20_narrow$scientist[i] = 1
   } else if (grepl("sc", joblist)) {
@@ -1916,6 +1942,8 @@ for (i in 1:length(narrow_list)){
     acc20_narrow$onePLA[i] = 1
   } else if (grepl("party", joblist)) {
     acc20_narrow$oneparty[i] = 1
+  } else if (grepl("DSTC", joblist)) {
+    acc20_narrow$tech[i] = 1
   } else if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
              grepl("BOC", joblist) | grepl("CCB", joblist) | grepl("BOComm", joblist) |
              grepl("EXIM", joblist) | grepl("ADBC", joblist) | grepl("CDB", joblist) |
@@ -1924,11 +1952,9 @@ for (i in 1:length(narrow_list)){
              grepl("PFB", joblist) | grepl("HXB", joblist) | grepl("MSB", joblist) |
              grepl("ZJB", joblist) | grepl("HFB", joblist) | grepl("BHB", joblist) |
              grepl("Other Bank", joblist) | grepl("CIC", joblist) | grepl("WBIMF", joblist) |
-             grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("SASAC", joblist) |
+             grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("sc SASAC", joblist) |
              grepl("NAFR", joblist) | grepl("CSRC", joblist)) {
     acc20_narrow$finance[i] = 1
-  } else if (grepl("SOE DSTC", joblist)) {
-    acc20_narrow$tech[i] = 1
   } else if (grepl("univ", joblist) & (grepl("Engineering Academy", joblist) | grepl("NSFC", joblist))){
     acc20_narrow$scientist[i] = 1
   } else if (grepl("sc", joblist)) {
@@ -1969,6 +1995,8 @@ for (i in 1:length(narrow_list)){
     fcc19_narrow$onePLA[i] = 1
   } else if (grepl("party", joblist)) {
     fcc19_narrow$oneparty[i] = 1
+  } else if (grepl("DSTC", joblist)) {
+    fcc19_narrow$tech[i] = 1
   } else if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
              grepl("BOC", joblist) | grepl("CCB", joblist) | grepl("BOComm", joblist) |
              grepl("EXIM", joblist) | grepl("ADBC", joblist) | grepl("CDB", joblist) |
@@ -1977,11 +2005,9 @@ for (i in 1:length(narrow_list)){
              grepl("PFB", joblist) | grepl("HXB", joblist) | grepl("MSB", joblist) |
              grepl("ZJB", joblist) | grepl("HFB", joblist) | grepl("BHB", joblist) |
              grepl("Other Bank", joblist) | grepl("CIC", joblist) | grepl("WBIMF", joblist) |
-             grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("SASAC", joblist) |
+             grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("sc SASAC", joblist) |
              grepl("NAFR", joblist) | grepl("CSRC", joblist)) {
     fcc19_narrow$finance[i] = 1
-  } else if (grepl("SOE DSTC", joblist)) {
-    fcc19_narrow$tech[i] = 1
   } else if (grepl("univ", joblist) & (grepl("Engineering Academy", joblist) | grepl("NSFC", joblist))){
     fcc19_narrow$scientist[i] = 1
   } else if (grepl("sc", joblist)) {
@@ -2002,7 +2028,7 @@ for (i in 1:length(narrow_list)){
     fcc19_narrow$onepro[i] = 1
   }
 }
-# Visualization
+
 #====ACC 19====
 narrow_list <- which(acc19_career$narrow == 1)
 acc19_narrow <- data.frame(cname = acc19$cname[narrow_list],
@@ -2022,6 +2048,8 @@ for (i in 1:length(narrow_list)){
     acc19_narrow$onePLA[i] = 1
   } else if (grepl("party", joblist)) {
     acc19_narrow$oneparty[i] = 1
+  } else if (grepl("DSTC", joblist)) {
+    acc19_narrow$tech[i] = 1
   } else if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
              grepl("BOC", joblist) | grepl("CCB", joblist) | grepl("BOComm", joblist) |
              grepl("EXIM", joblist) | grepl("ADBC", joblist) | grepl("CDB", joblist) |
@@ -2030,11 +2058,9 @@ for (i in 1:length(narrow_list)){
              grepl("PFB", joblist) | grepl("HXB", joblist) | grepl("MSB", joblist) |
              grepl("ZJB", joblist) | grepl("HFB", joblist) | grepl("BHB", joblist) |
              grepl("Other Bank", joblist) | grepl("CIC", joblist) | grepl("WBIMF", joblist) |
-             grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("SASAC", joblist) |
+             grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("sc SASAC", joblist) |
              grepl("NAFR", joblist) | grepl("CSRC", joblist)) {
     acc19_narrow$finance[i] = 1
-  } else if (grepl("SOE DSTC", joblist)) {
-    acc19_narrow$tech[i] = 1
   } else if (grepl("univ", joblist) & (grepl("Engineering Academy", joblist) | grepl("NSFC", joblist))){
     acc19_narrow$scientist[i] = 1
   } else if (grepl("sc", joblist)) {
@@ -2074,6 +2100,8 @@ for (i in 1:length(narrow_list)){
     fcc18_narrow$onePLA[i] = 1
   } else if (grepl("party", joblist)) {
     fcc18_narrow$oneparty[i] = 1
+  } else if (grepl("DSTC", joblist)) {
+    fcc18_narrow$tech[i] = 1
   } else if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
              grepl("BOC", joblist) | grepl("CCB", joblist) | grepl("BOComm", joblist) |
              grepl("EXIM", joblist) | grepl("ADBC", joblist) | grepl("CDB", joblist) |
@@ -2082,11 +2110,9 @@ for (i in 1:length(narrow_list)){
              grepl("PFB", joblist) | grepl("HXB", joblist) | grepl("MSB", joblist) |
              grepl("ZJB", joblist) | grepl("HFB", joblist) | grepl("BHB", joblist) |
              grepl("Other Bank", joblist) | grepl("CIC", joblist) | grepl("WBIMF", joblist) |
-             grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("SASAC", joblist) |
+             grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("sc SASAC", joblist) |
              grepl("NAFR", joblist) | grepl("CSRC", joblist)) {
     fcc18_narrow$finance[i] = 1
-  } else if (grepl("SOE DSTC", joblist)) {
-    fcc18_narrow$tech[i] = 1
   } else if (grepl("univ", joblist) & (grepl("Engineering Academy", joblist) | grepl("NSFC", joblist))){
     fcc18_narrow$scientist[i] = 1
   } else if (grepl("sc", joblist)) {
@@ -2107,7 +2133,7 @@ for (i in 1:length(narrow_list)){
     fcc18_narrow$onepro[i] = 1
   }
 }
-# Visualization
+
 #====ACC 18====
 narrow_list <- which(acc18_career$narrow == 1)
 acc18_narrow <- data.frame(cname = acc18$cname[narrow_list],
@@ -2127,6 +2153,8 @@ for (i in 1:length(narrow_list)){
     acc18_narrow$onePLA[i] = 1
   } else if (grepl("party", joblist)) {
     acc18_narrow$oneparty[i] = 1
+  } else if (grepl("DSTC", joblist)) {
+    acc18_narrow$tech[i] = 1
   } else if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
              grepl("BOC", joblist) | grepl("CCB", joblist) | grepl("BOComm", joblist) |
              grepl("EXIM", joblist) | grepl("ADBC", joblist) | grepl("CDB", joblist) |
@@ -2135,11 +2163,9 @@ for (i in 1:length(narrow_list)){
              grepl("PFB", joblist) | grepl("HXB", joblist) | grepl("MSB", joblist) |
              grepl("ZJB", joblist) | grepl("HFB", joblist) | grepl("BHB", joblist) |
              grepl("Other Bank", joblist) | grepl("CIC", joblist) | grepl("WBIMF", joblist) |
-             grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("SASAC", joblist) |
+             grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("sc SASAC", joblist) |
              grepl("NAFR", joblist) | grepl("CSRC", joblist)) {
     acc18_narrow$finance[i] = 1
-  } else if (grepl("SOE DSTC", joblist)) {
-    acc18_narrow$tech[i] = 1
   } else if (grepl("univ", joblist) & (grepl("Engineering Academy", joblist) | grepl("NSFC", joblist))){
     acc18_narrow$scientist[i] = 1
   } else if (grepl("sc", joblist)) {
@@ -2176,7 +2202,9 @@ fcc20_expert <- data.frame(cname = fcc20$cname,
                            finance = NA, tech = NA, scientist = NA)
 for (i in 1:nrow(fcc20_expert)){
   joblist <- toString(fcc20_path$career[[i]])
-  if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
+  if (grepl("DSTC", joblist)) {
+    fcc20_expert$tech[i] = 1
+  } else if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
              grepl("BOC", joblist) | grepl("CCB", joblist) | grepl("BOComm", joblist) |
              grepl("EXIM", joblist) | grepl("ADBC", joblist) | grepl("CDB", joblist) |
              grepl("CITIC", joblist) | grepl("CMB", joblist) | grepl("PAB", joblist) |
@@ -2184,11 +2212,9 @@ for (i in 1:nrow(fcc20_expert)){
              grepl("PFB", joblist) | grepl("HXB", joblist) | grepl("MSB", joblist) |
              grepl("ZJB", joblist) | grepl("HFB", joblist) | grepl("BHB", joblist) |
              grepl("Other Bank", joblist) | grepl("CIC", joblist) | grepl("WBIMF", joblist) |
-             grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("SASAC", joblist) |
+             grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("sc SASAC", joblist) |
              grepl("NAFR", joblist) | grepl("CSRC", joblist)) {
     fcc20_expert$finance[i] = 1
-  } else if (grepl("SOE DSTC", joblist)) {
-    fcc20_expert$tech[i] = 1
   } else if (grepl("univ", joblist) & (grepl("Engineering Academy", joblist) | grepl("NSFC", joblist))){
     fcc20_expert$scientist[i] = 1
   } else if (grepl("univ", joblist)) {
@@ -2207,19 +2233,19 @@ acc20_expert <- data.frame(cname = acc20$cname,
                            finance = NA, tech = NA, scientist = NA)
 for (i in 1:nrow(acc20_expert)){
   joblist <- toString(acc20_path$career[[i]])
-  if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
-      grepl("BOC", joblist) | grepl("CCB", joblist) | grepl("BOComm", joblist) |
-      grepl("EXIM", joblist) | grepl("ADBC", joblist) | grepl("CDB", joblist) |
-      grepl("CITIC", joblist) | grepl("CMB", joblist) | grepl("PAB", joblist) |
-      grepl("Industrial", joblist) | grepl("GFB", joblist) | grepl("EBB", joblist) |
-      grepl("PFB", joblist) | grepl("HXB", joblist) | grepl("MSB", joblist) |
-      grepl("ZJB", joblist) | grepl("HFB", joblist) | grepl("BHB", joblist) |
-      grepl("Other Bank", joblist) | grepl("CIC", joblist) | grepl("WBIMF", joblist) |
-      grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("SASAC", joblist) |
-      grepl("NAFR", joblist) | grepl("CSRC", joblist)) {
-    acc20_expert$finance[i] = 1
-  } else if (grepl("SOE DSTC", joblist)) {
+  if (grepl("DSTC", joblist)) {
     acc20_expert$tech[i] = 1
+  } else if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
+        grepl("BOC", joblist) | grepl("CCB", joblist) | grepl("BOComm", joblist) |
+        grepl("EXIM", joblist) | grepl("ADBC", joblist) | grepl("CDB", joblist) |
+        grepl("CITIC", joblist) | grepl("CMB", joblist) | grepl("PAB", joblist) |
+        grepl("Industrial", joblist) | grepl("GFB", joblist) | grepl("EBB", joblist) |
+        grepl("PFB", joblist) | grepl("HXB", joblist) | grepl("MSB", joblist) |
+        grepl("ZJB", joblist) | grepl("HFB", joblist) | grepl("BHB", joblist) |
+        grepl("Other Bank", joblist) | grepl("CIC", joblist) | grepl("WBIMF", joblist) |
+        grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("sc SASAC", joblist) |
+        grepl("NAFR", joblist) | grepl("CSRC", joblist)) {
+    acc20_expert$finance[i] = 1
   } else if (grepl("univ", joblist) & (grepl("Engineering Academy", joblist) | grepl("NSFC", joblist))){
     acc20_expert$scientist[i] = 1
   } else if (grepl("univ", joblist)) {
@@ -2238,7 +2264,9 @@ fcc19_expert <- data.frame(cname = fcc19$cname,
                            finance = NA, tech = NA, scientist = NA)
 for (i in 1:nrow(fcc19_expert)){
   joblist <- toString(fcc19_path$career[[i]])
-  if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
+  if (grepl("DSTC", joblist)) {
+    fcc19_expert$tech[i] = 1
+  } else if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
       grepl("BOC", joblist) | grepl("CCB", joblist) | grepl("BOComm", joblist) |
       grepl("EXIM", joblist) | grepl("ADBC", joblist) | grepl("CDB", joblist) |
       grepl("CITIC", joblist) | grepl("CMB", joblist) | grepl("PAB", joblist) |
@@ -2249,8 +2277,6 @@ for (i in 1:nrow(fcc19_expert)){
       grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("SASAC", joblist) |
       grepl("NAFR", joblist) | grepl("CSRC", joblist)) {
     fcc19_expert$finance[i] = 1
-  } else if (grepl("SOE DSTC", joblist)) {
-    fcc19_expert$tech[i] = 1
   } else if (grepl("univ", joblist) & (grepl("Engineering Academy", joblist) | grepl("NSFC", joblist))){
     fcc19_expert$scientist[i] = 1
   } else if (grepl("univ", joblist)) {
@@ -2268,7 +2294,9 @@ acc19_expert <- data.frame(cname = acc19$cname,
                            finance = NA, tech = NA, scientist = NA)
 for (i in 1:nrow(acc19_expert)){
   joblist <- toString(acc19_path$career[[i]])
-  if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
+  if (grepl("DSTC", joblist)) {
+    acc19_expert$tech[i] = 1
+  } else if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
       grepl("BOC", joblist) | grepl("CCB", joblist) | grepl("BOComm", joblist) |
       grepl("EXIM", joblist) | grepl("ADBC", joblist) | grepl("CDB", joblist) |
       grepl("CITIC", joblist) | grepl("CMB", joblist) | grepl("PAB", joblist) |
@@ -2279,8 +2307,6 @@ for (i in 1:nrow(acc19_expert)){
       grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("SASAC", joblist) |
       grepl("NAFR", joblist) | grepl("CSRC", joblist)) {
     acc19_expert$finance[i] = 1
-  } else if (grepl("SOE DSTC", joblist)) {
-    acc19_expert$tech[i] = 1
   } else if (grepl("univ", joblist) & (grepl("Engineering Academy", joblist) | grepl("NSFC", joblist))){
     acc19_expert$scientist[i] = 1
   } else if (grepl("univ", joblist)) {
@@ -2299,7 +2325,9 @@ fcc18_expert <- data.frame(cname = fcc18$cname,
                            finance = NA, tech = NA, scientist = NA)
 for (i in 1:nrow(fcc18_expert)){
   joblist <- toString(fcc18_path$career[[i]])
-  if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
+  if (grepl("DSTC", joblist)) {
+    fcc18_expert$tech[i] = 1
+  } else if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
       grepl("BOC", joblist) | grepl("CCB", joblist) | grepl("BOComm", joblist) |
       grepl("EXIM", joblist) | grepl("ADBC", joblist) | grepl("CDB", joblist) |
       grepl("CITIC", joblist) | grepl("CMB", joblist) | grepl("PAB", joblist) |
@@ -2310,8 +2338,6 @@ for (i in 1:nrow(fcc18_expert)){
       grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("SASAC", joblist) |
       grepl("NAFR", joblist) | grepl("CSRC", joblist)) {
     fcc18_expert$finance[i] = 1
-  } else if (grepl("SOE DSTC", joblist)) {
-    fcc18_expert$tech[i] = 1
   } else if (grepl("univ", joblist) & (grepl("Engineering Academy", joblist) | grepl("NSFC", joblist))){
     fcc18_expert$scientist[i] = 1
   } else if (grepl("univ", joblist)) {
@@ -2330,7 +2356,9 @@ acc18_expert <- data.frame(cname = acc18$cname,
                            finance = NA, tech = NA, scientist = NA)
 for (i in 1:nrow(acc18_expert)){
   joblist <- toString(acc18_path$career[[i]])
-  if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
+  if (grepl("DSTC", joblist)) {
+    acc18_expert$tech[i] = 1
+  } else if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
       grepl("BOC", joblist) | grepl("CCB", joblist) | grepl("BOComm", joblist) |
       grepl("EXIM", joblist) | grepl("ADBC", joblist) | grepl("CDB", joblist) |
       grepl("CITIC", joblist) | grepl("CMB", joblist) | grepl("PAB", joblist) |
@@ -2341,8 +2369,6 @@ for (i in 1:nrow(acc18_expert)){
       grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("SASAC", joblist) |
       grepl("NAFR", joblist) | grepl("CSRC", joblist)) {
     acc18_expert$finance[i] = 1
-  } else if (grepl("SOE DSTC", joblist)) {
-    acc18_expert$tech[i] = 1
   } else if (grepl("univ", joblist) & (grepl("Engineering Academy", joblist) | grepl("NSFC", joblist))){
     acc18_expert$scientist[i] = 1
   } else if (grepl("univ", joblist)) {
@@ -2352,6 +2378,99 @@ for (i in 1:nrow(acc18_expert)){
       }
     } else if ((!is.na(acc18$mamajor[i]) & acc18$mamajor[i] == 4)){
       acc18_expert$scientist[i] = 1
+    } 
+  }
+}
+
+#====PSC18====
+psc18_expert <- data.frame(cname = psc18$cname,
+                           finance = NA, tech = NA, scientist = NA)
+for (i in 1:nrow(psc18_expert)){
+  joblist <- toString(psc18_path$career[[i]])
+  if (grepl("DSTC", joblist)) {
+    psc18_expert$tech[i] = 1
+  } else if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
+      grepl("BOC", joblist) | grepl("CCB", joblist) | grepl("BOComm", joblist) |
+      grepl("EXIM", joblist) | grepl("ADBC", joblist) | grepl("CDB", joblist) |
+      grepl("CITIC", joblist) | grepl("CMB", joblist) | grepl("PAB", joblist) |
+      grepl("Industrial", joblist) | grepl("GFB", joblist) | grepl("EBB", joblist) |
+      grepl("PFB", joblist) | grepl("HXB", joblist) | grepl("MSB", joblist) |
+      grepl("ZJB", joblist) | grepl("HFB", joblist) | grepl("BHB", joblist) |
+      grepl("Other Bank", joblist) | grepl("CIC", joblist) | grepl("WBIMF", joblist) |
+      grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("SASAC", joblist) |
+      grepl("NAFR", joblist) | grepl("CSRC", joblist)) {
+    psc18_expert$finance[i] = 1
+  } else if (grepl("univ", joblist) & (grepl("Engineering Academy", joblist) | grepl("NSFC", joblist))){
+    psc18_expert$scientist[i] = 1
+  } else if (grepl("univ", joblist)) {
+    if (!is.na(psc18$phdmajor[i])) {
+      if (psc18$phdmajor[i] == 4) {
+        psc18_expert$scientist[i] = 1
+      }
+    } else if ((!is.na(psc18$mamajor[i]) & psc18$mamajor[i] == 4)){
+      psc18_expert$scientist[i] = 1
+    } 
+  }
+}
+
+#====PSC19====
+psc19_expert <- data.frame(cname = psc19$cname,
+                           finance = NA, tech = NA, scientist = NA)
+for (i in 1:nrow(psc19_expert)){
+  joblist <- toString(psc19_path$career[[i]])
+  if (grepl("DSTC", joblist)) {
+    psc19_expert$tech[i] = 1
+  } else if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
+      grepl("BOC", joblist) | grepl("CCB", joblist) | grepl("BOComm", joblist) |
+      grepl("EXIM", joblist) | grepl("ADBC", joblist) | grepl("CDB", joblist) |
+      grepl("CITIC", joblist) | grepl("CMB", joblist) | grepl("PAB", joblist) |
+      grepl("Industrial", joblist) | grepl("GFB", joblist) | grepl("EBB", joblist) |
+      grepl("PFB", joblist) | grepl("HXB", joblist) | grepl("MSB", joblist) |
+      grepl("ZJB", joblist) | grepl("HFB", joblist) | grepl("BHB", joblist) |
+      grepl("Other Bank", joblist) | grepl("CIC", joblist) | grepl("WBIMF", joblist) |
+      grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("SASAC", joblist) |
+      grepl("NAFR", joblist) | grepl("CSRC", joblist)) {
+    psc19_expert$finance[i] = 1
+  } else if (grepl("univ", joblist) & (grepl("Engineering Academy", joblist) | grepl("NSFC", joblist))){
+    psc19_expert$scientist[i] = 1
+  } else if (grepl("univ", joblist)) {
+    if (!is.na(psc19$phdmajor[i])) {
+      if (psc19$phdmajor[i] == 4) {
+        psc19_expert$scientist[i] = 1
+      }
+    } else if ((!is.na(psc19$mamajor[i]) & psc19$mamajor[i] == 4)){
+      psc19_expert$scientist[i] = 1
+    } 
+  }
+}
+
+#====PSC20====
+psc20_expert <- data.frame(cname = psc20$cname,
+                           finance = NA, tech = NA, scientist = NA)
+for (i in 1:nrow(psc20_expert)){
+  joblist <- toString(psc20_path$career[[i]])
+  if (grepl("DSTC", joblist)) {
+    psc20_expert$tech[i] = 1
+  } else if (grepl("PBOC", joblist) | grepl("ICBC", joblist) | grepl("ABC", joblist) |
+      grepl("BOC", joblist) | grepl("CCB", joblist) | grepl("BOComm", joblist) |
+      grepl("EXIM", joblist) | grepl("ADBC", joblist) | grepl("CDB", joblist) |
+      grepl("CITIC", joblist) | grepl("CMB", joblist) | grepl("PAB", joblist) |
+      grepl("Industrial", joblist) | grepl("GFB", joblist) | grepl("EBB", joblist) |
+      grepl("PFB", joblist) | grepl("HXB", joblist) | grepl("MSB", joblist) |
+      grepl("ZJB", joblist) | grepl("HFB", joblist) | grepl("BHB", joblist) |
+      grepl("Other Bank", joblist) | grepl("CIC", joblist) | grepl("WBIMF", joblist) |
+      grepl("SHGOLD", joblist) | grepl("Union", joblist) | grepl("SASAC", joblist) |
+      grepl("NAFR", joblist) | grepl("CSRC", joblist)) {
+    psc20_expert$finance[i] = 1
+  } else if (grepl("univ", joblist) & (grepl("Engineering Academy", joblist) | grepl("NSFC", joblist))){
+    psc20_expert$scientist[i] = 1
+  } else if (grepl("univ", joblist)) {
+    if (!is.na(psc20$phdmajor[i])) {
+      if (psc20$phdmajor[i] == 4) {
+        psc20_expert$scientist[i] = 1
+      }
+    } else if ((!is.na(psc20$mamajor[i]) & psc20$mamajor[i] == 4)){
+      psc20_expert$scientist[i] = 1
     } 
   }
 }
@@ -2373,10 +2492,13 @@ ggplot() +
   ylim(0, 5) +
   labs(x = "Party Congress Session", y = "Average Career Width", linetype = "Member", 
        title = "Career Width of the CCP Central Committee (2012-2022)") +
-  theme_minimal() +
+  theme_minimal()+
   theme(text = element_text(family = "serif"),
+        plot.background = element_rect(fill = "white", color = "white"),
+        panel.background = element_rect(fill = "white", color = "white"),
         legend.position = "bottom")
-  
+ggsave("/Users/ziyuhe/Documents/GitHub/chinese-elite-politics/figures/Career_Width_CPPCC.png")
+
 ggplot() +
   geom_line(aes(x = session, y = narrow, group = 1, linetype = "Full"), data = fcc_stats) + 
   geom_point(aes(x = session, y = narrow, linetype = "Full"), data = fcc_stats) +
@@ -2385,9 +2507,12 @@ ggplot() +
   scale_linetype_manual(values = c("Full" = 1, "Alternate" = 2)) +
   labs(x = "Party Congress Session", y = "Percentage of Members with Narrow Career Paths", linetype = "Member", 
        title = "Narrow Career Paths among CCP Central Committee Members (2012-2022)") +
-  theme_minimal() +
+  theme_minimal()+
   theme(text = element_text(family = "serif"),
+        plot.background = element_rect(fill = "white", color = "white"),
+        panel.background = element_rect(fill = "white", color = "white"),
         legend.position = "bottom")
+ggsave("/Users/ziyuhe/Documents/GitHub/chinese-elite-politics/figures/CCPCC_Narrow_Career_(1).png")
 
 ggplot() +
   geom_line(aes(x = session, y = narrow_alt, group = 1, linetype = "Full"), data = fcc_stats) + 
@@ -2397,9 +2522,12 @@ ggplot() +
   scale_linetype_manual(values = c("Full" = 1, "Alternate" = 2)) +
   labs(x = "Party Congress Session", y = "Percentage of Members with Narrow Career Paths", linetype = "Member", 
        title = "Narrow Career Paths among CCP Central Committee Members (2012-2022)") +
-  theme_minimal() +
+  theme_minimal()+
   theme(text = element_text(family = "serif"),
+        plot.background = element_rect(fill = "white", color = "white"),
+        panel.background = element_rect(fill = "white", color = "white"),
         legend.position = "bottom")
+ggsave("/Users/ziyuhe/Documents/GitHub/chinese-elite-politics/figures/CCPCC_Narrow_Career_(2).png")
 
 fcc_stats_t <- fcc_stats[, c("pla", "sc", "province", "SOE", "party")] |> 
   t() |> data.frame()
@@ -2419,17 +2547,23 @@ ggplot(fcc_stats_t)+
   geom_bar(aes(x = type, y = percentage, fill = session), stat = "identity", position = "dodge") +
   labs(x = "Position", y = "Percentage of Members", fill = "Session",
        title = "Position Held by CCP Central Committee Full Members (2012-2022)") +
-  theme_minimal() +
+  theme_minimal()+
   theme(text = element_text(family = "serif"),
+        plot.background = element_rect(fill = "white", color = "white"),
+        panel.background = element_rect(fill = "white", color = "white"),
         legend.position = "bottom")
+ggsave("/Users/ziyuhe/Documents/GitHub/chinese-elite-politics/figures/CCPCC_Position_Full.png")
 
 ggplot(acc_stats_t)+
   geom_bar(aes(x = type, y = percentage, fill = session), stat = "identity", position = "dodge") +
   labs(x = "Position", y = "Percentage of Members", fill = "Session",
        title = "Position Held by CCP Central Committee Alternate Members (2012-2022)") +
-  theme_minimal() +
+  theme_minimal()+
   theme(text = element_text(family = "serif"),
+        plot.background = element_rect(fill = "white", color = "white"),
+        panel.background = element_rect(fill = "white", color = "white"),
         legend.position = "bottom")
+ggsave("/Users/ziyuhe/Documents/GitHub/chinese-elite-politics/figures/CCPCC_Position_Alternate.png")
 
 acc_narrow <- colSums(acc18_narrow[, 2:(ncol(acc18_narrow) - 1)], na.rm = T) |> 
   data.frame() |> 
@@ -2444,13 +2578,41 @@ acc_narrow <- acc_narrow |>
   filter(Position %!in% c("One Party Organ", "NPC", "CPPCC", "Mostly Mass Organization")) |> 
   gather(session, count, "18":"20")
 
+fcc_narrow <- colSums(fcc18_narrow[, 2:(ncol(fcc18_narrow) - 1)], na.rm = T) |> 
+  data.frame() |> 
+  cbind(colSums(fcc19_narrow[, 2:(ncol(fcc19_narrow) - 1)], na.rm = T)) |> 
+  cbind(colSums(fcc20_narrow[, 2:(ncol(fcc20_narrow) - 1)], na.rm = T))
+names(fcc_narrow) <- c("18", "19", "20")
+fcc_narrow$Position <- c("One Province", "One Ministry", "One Party Organ",
+                         "One PLA Region", "Mostly Other SOE", "Finance Expert",
+                         "Technology Expert", "Scientist", "Other Academic",
+                         "Mostly Mass Organization", "NPC", "CPPCC")
+fcc_narrow <- fcc_narrow |> 
+  filter(Position %!in% c("One Party Organ", "NPC", "CPPCC", "Mostly Mass Organization")) |> 
+  gather(session, count, "18":"20")
+
+ggplot(fcc_narrow) +
+  geom_bar(aes(x = Position, y = count, fill = session), stat = "identity", position = "dodge") +
+  labs(x = "Narrow Path", y = "Count", fill = "Session",
+       title = "Narrow Career Paths of CCP Central Committee Alternate Members (2012-2022)") +
+  theme_minimal()+
+  theme(text = element_text(family = "serif"),
+        plot.background = element_rect(fill = "white", color = "white"),
+        panel.background = element_rect(fill = "white", color = "white"),
+        legend.position = "bottom")
+ggsave("/Users/ziyuhe/Documents/GitHub/chinese-elite-politics/figures/Narrow_Paths_CCPCC_Full.png")
+
+
 ggplot(acc_narrow) +
   geom_bar(aes(x = Position, y = count, fill = session), stat = "identity", position = "dodge") +
   labs(x = "Narrow Path", y = "Count", fill = "Session",
        title = "Narrow Career Paths of CCP Central Committee Alternate Members (2012-2022)") +
-  theme_minimal() +
+  theme_minimal()+
   theme(text = element_text(family = "serif"),
+        plot.background = element_rect(fill = "white", color = "white"),
+        panel.background = element_rect(fill = "white", color = "white"),
         legend.position = "bottom")
+ggsave("/Users/ziyuhe/Documents/GitHub/chinese-elite-politics/figures/Narrow_Paths_CCPCC_Alternate.png")
 
 fcc_xi <- stats[c(1, 3, 5), c("session", "Xi")]
 acc_xi <- stats[c(2, 4, 6), c("session", "Xi")]
@@ -2458,14 +2620,17 @@ acc_xi <- stats[c(2, 4, 6), c("session", "Xi")]
 ggplot() +
   geom_line(aes(x = session, y = Xi, group = 1, lty = "Full Member"), data = fcc_xi) +
   geom_line(aes(x = session, y = Xi, group = 1, lty = "Alternate Member"), data = acc_xi) +
-  theme_minimal() +
   scale_linetype_manual(values = c("Full Member" = 1,
                                    "Alternate Member" = 2)) +
   labs(x = "Session", y = "Percentage of Members",
-       title = "Share of CCPCC Members with Ties with Xi Jinping (2012-2022)",
+       title = "Share of CCPCC Members with Ties with Xi (2012-2022)",
        lty = "Member") +
+  theme_minimal()+
   theme(text = element_text(family = "serif"),
+        plot.background = element_rect(fill = "white", color = "white"),
+        panel.background = element_rect(fill = "white", color = "white"),
         legend.position = "bottom")
+ggsave("/Users/ziyuhe/Documents/GitHub/chinese-elite-politics/figures/CCPCC_Xi_Ties_Total.png")
 
 fcc_xiyear <- fcc_stats[, c("Xi_1", "Xi_2", "Xi_3", "Xi_4")] |> 
   t() |> data.frame()
@@ -2487,17 +2652,23 @@ ggplot(fcc_xiyear)+
   geom_bar(aes(x = exp, y = percentage, fill = session), stat = "identity", position = "dodge") +
   labs(x = "Position", y = "Percentage of Members", fill = "Session",
        title = "Experience with Xi of CCPCC Full Members (2012-2022)") +
-  theme_minimal() +
+  theme_minimal()+
   theme(text = element_text(family = "serif"),
+        plot.background = element_rect(fill = "white", color = "white"),
+        panel.background = element_rect(fill = "white", color = "white"),
         legend.position = "bottom")
+ggsave("/Users/ziyuhe/Documents/GitHub/chinese-elite-politics/figures/CCPCC_Full_Xi_Exp.png")
 
 ggplot(acc_xiyear)+
   geom_bar(aes(x = exp, y = percentage, fill = session), stat = "identity", position = "dodge") +
   labs(x = "Position", y = "Percentage of Members", fill = "Session",
        title = "Experience with Xi of CCPCC Alternate Members (2012-2022)") +
-  theme_minimal() +
+  theme_minimal()+
   theme(text = element_text(family = "serif"),
+        plot.background = element_rect(fill = "white", color = "white"),
+        panel.background = element_rect(fill = "white", color = "white"),
         legend.position = "bottom")
+ggsave("/Users/ziyuhe/Documents/GitHub/chinese-elite-politics/figures/CCPCC_Alternate_Xi_Exp.png")
 
 fcc_expert <- colSums(fcc18_expert[, 2:ncol(fcc18_expert)], na.rm = T) |> 
   data.frame() |> 
@@ -2521,16 +2692,60 @@ ggplot(fcc_expert) +
   geom_bar(aes(x = Position, y = count, fill = session), stat = "identity", position = "dodge") +
   labs(x = "Expertise", y = "Count", fill = "Session",
        title = "Career Expertise of CCPCC Full Members (2012-2022)") +
-  theme_minimal() +
+  theme_minimal()+
   theme(text = element_text(family = "serif"),
+        plot.background = element_rect(fill = "white", color = "white"),
+        panel.background = element_rect(fill = "white", color = "white"),
         legend.position = "bottom")
+ggsave("/Users/ziyuhe/Documents/GitHub/chinese-elite-politics/figures/CCPCC_Full_Member_Expertise.png")
 
-acc_expert_plot <- ggplot(acc_expert) +
+ggplot(acc_expert) +
   geom_bar(aes(x = Position, y = count, fill = session), stat = "identity", position = "dodge") +
   labs(x = "Expertise", y = "Count", fill = "Session",
        title = "Career Expertise of CCPCC Alternate Members (2012-2022)") +
+  theme_minimal()+
   theme(text = element_text(family = "serif"),
+        plot.background = element_rect(fill = "white", color = "white"),
+        panel.background = element_rect(fill = "white", color = "white"),
         legend.position = "bottom")
-ggsave("/Users/ziyuhe/Documents/GitHub/chinese-elite-politics/figures/CCPCC_Alternate_Member_Expertise.png", acc_expert_plot)
+ggsave("/Users/ziyuhe/Documents/GitHub/chinese-elite-politics/figures/CCPCC_Alternate_Member_Expertise.png")
+
+psc_expert <- colSums(psc18_expert[, 2:ncol(psc18_expert)], na.rm = T) |> 
+  data.frame() |> 
+  cbind(colSums(psc19_expert[, 2:ncol(psc19_expert)], na.rm = T)) |> 
+  cbind(colSums(psc20_expert[, 2:ncol(psc20_expert)], na.rm = T))
+names(psc_expert) <- c("18", "19", "20")
+psc_expert$Position <- c("Finance", "Technology", "Natural Science")
+psc_expert <- psc_expert |> 
+  gather(session, count, "18":"20")
+
+ggplot(psc_expert) +
+  geom_bar(aes(x = Position, y = count, fill = session), stat = "identity", position = "dodge") +
+  labs(x = "Expertise", y = "Count", fill = "Session",
+       title = "Career Expertise of Politburo Members (2012-2022)") +
+  theme_minimal() +
+  theme(text = element_text(family = "serif"),
+        plot.background = element_rect(fill = "white", color = "white"),
+        panel.background = element_rect(fill = "white", color = "white"),
+        legend.position = "bottom")
+ggsave("/Users/ziyuhe/Documents/GitHub/chinese-elite-politics/figures/Politburo_Expertise.png")
+
+total_expert <- psc_expert |> 
+  cbind(fcc_expert$count, acc_expert$count)
+names(total_expert) <- c("Expertise", "Session", "PSC", "FCC", "ACC")
+total_expert <- total_expert |> 
+  mutate(Total = PSC + FCC + ACC)
+
+ggplot(total_expert) +
+  geom_bar(aes(x = Expertise, y = Total, fill = Session), stat = "identity", position = "dodge") +
+  labs(x = "Expertise", y = "Count", fill = "Session",
+       title = "Career Expertise of All Central Committee Members (2012-2022)") +
+  theme_minimal() +
+  theme(text = element_text(family = "serif"),
+        plot.background = element_rect(fill = "white", color = "white"),
+        panel.background = element_rect(fill = "white", color = "white"),
+        legend.position = "bottom")
+ggsave("/Users/ziyuhe/Documents/GitHub/chinese-elite-politics/figures/Total_Expertise.png")
+
 
 write_xlsx(stats, "/Users/ziyuhe/Documents/GitHub/chinese-elite-politics/dataset/summary_stats.xlsx")
